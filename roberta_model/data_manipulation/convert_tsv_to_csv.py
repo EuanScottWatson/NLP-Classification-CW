@@ -17,6 +17,14 @@ def convert_tsv_to_csv(tsv_file_path, csv_file_path):
     csv_writer.writerow(column_headers)
 
     for row in tsv_reader:
+        label = int(row[-1])
+        if label in [0, 1, 2]:
+            label = 0
+        elif label in [3, 4]:
+            label = 1
+        else:
+            raise ValueError(f"Invalid label value: {label}")
+        row[-1] = str(label)
         csv_writer.writerow(row)
 
     tsv_file.close()
