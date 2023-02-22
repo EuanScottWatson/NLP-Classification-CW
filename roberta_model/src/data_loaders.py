@@ -7,26 +7,28 @@ from torch.utils.data.dataset import Dataset
 class DontPatronizeMePCL(Dataset):
     """Base dataloader for the Jigsaw Toxic Comment Classification Challenges."""
 
-    def __init__(self, train_csv_file, val_csv_file, test_csv_file, train=True):
-        print(train_csv_file)
-        print(val_csv_file)
-        print(test_csv_file)
+    def __init__(self, train_csv_file, val_csv_file, test_csv_file, loss_weight=0.75,
+                 classes=["toxic"], train=True):
         if train:
             self.data = self.load_data(train_csv_file)
         else:
             self.data = self.load_val(val_csv_file)
 
         self.train = train
+        self.classes = classes
+        self.loss_weight = loss_weight
 
     def __getitem__(self, index):
         meta = {}
         entry = self.data[index]
-        text_id = entry["id"]
-        text = entry["comment_text"]
+        text_id = entry["par_id"]
+        text = entry["text"]
 
-        target_dict = {label: value for label, value in entry.items() if label in self.classes}
+        target_dict = {label: value for label,
+                       value in entry.items() if label in self.classes}
 
-        meta["multi_target"] = torch.tensor(list(target_dict.values()), dtype=torch.int32)
+        meta["multi_target"] = torch.tensor(
+            list(target_dict.values()), dtype=torch.int32)
         meta["text_id"] = text_id
 
         return text, meta
@@ -36,10 +38,12 @@ class DontPatronizeMePCL(Dataset):
 
     def load_data(self, csv_file):
         train_set_pd = pd.read_csv(csv_file)
-        train_set = datasets.Dataset.from_pandas(train_set_pd)
-        return train_set
+        return train_set_pd
+        # train_set = datasets.Dataset.from_pandas(train_set_pd)
+        # return train_set
 
     def load_val(self, val_csv_file, add_labels=False):
         val_set = self.load_data(val_csv_file)
-        val_set = datasets.Dataset.from_pandas(val_set)
         return val_set
+        # val_set = datasets.Dataset.from_pandas(val_set)
+        # return val_set
