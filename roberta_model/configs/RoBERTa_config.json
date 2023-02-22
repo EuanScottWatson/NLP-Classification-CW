@@ -15,7 +15,7 @@
         }
     },
     "dataset": {
-        "type": "JigsawDataBias",
+        "type": "DontPatronizeMePCL",
         "args": {
             "train_csv_file": "/vol/bitbucket/es1519/NLPClassification_01/roberta_model/DontPatronizeMe/csv_files/dontpatronizeme_pcl_train.csv",
             "test_csv_file": "/vol/bitbucket/es1519/NLPClassification_01/roberta_model/DontPatronizeMe/csv_files/dontpatronizeme_pcl_test.csv",
