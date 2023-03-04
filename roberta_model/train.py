@@ -138,7 +138,7 @@ def cli_main():
 
     print("Fetching datasets")
     dataset = get_instance(module_data, "dataset", config)
-    val_dataset = get_instance(module_data, "dataset", config, train=False)
+    val_dataset = get_instance(module_data, "dataset", config, mode="VALIDATION")
 
     print("Datasets fetched")
 

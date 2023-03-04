@@ -1,29 +1,26 @@
 import argparse
 import json
-import os
 import warnings
 
 import sys
-sys.path.insert(1, '/vol/bitbucket/es1519/detecting-hidden-purpose-in-nlp-models/detoxify/src')
-sys.path.insert(1, '/vol/bitbucket/es1519/detecting-hidden-purpose-in-nlp-models/detoxify')
+sys.path.insert(1, '/vol/bitbucket/es1519/NLPClassification_01/roberta_model/src')
+sys.path.insert(1, '/vol/bitbucket/es1519/NLPClassification_01/roberta_model')
 
 import numpy as np
-import pandas as pd
 import src.data_loaders as module_data
 import torch
-from sklearn.metrics import roc_auc_score
-from src.data_loaders import JigsawDataBias, JigsawDataMultilingual, JigsawDataOriginal
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from train import ToxicClassifier
+from train import PatronisingClassifier
 
 
 def test_classifier(config, dataset, checkpoint_path, device="cuda:0"):
 
-    model = ToxicClassifier(config)
+    model = PatronisingClassifier(config)
     checkpoint = torch.load(checkpoint_path, map_location=device)
     model.load_state_dict(checkpoint["state_dict"])
-    model.eval() # Sets to evaluation mode (disable dropout + batch normalisation)
+    model.eval()  # Sets to evaluation mode (disable dropout + batch normalisation)
     model.to(device)
 
     def get_instance(module, name, config, *args, **kwargs):
@@ -31,7 +28,12 @@ def test_classifier(config, dataset, checkpoint_path, device="cuda:0"):
 
     config["dataset"]["args"]["test_csv_file"] = dataset
 
-    test_dataset = get_instance(module_data, "dataset", config, train=False)
+    print(f"Dataset: {dataset}")
+    print(config)
+
+    test_dataset = get_instance(module_data, "dataset", config, mode="TEST")
+
+    print(test_dataset)
 
     test_data_loader = DataLoader(
         test_dataset,
@@ -40,57 +42,42 @@ def test_classifier(config, dataset, checkpoint_path, device="cuda:0"):
         shuffle=False,
     )
 
-    scores = []
+    print(test_data_loader)
+
+    preds = []
     targets = []
     ids = []
     for *items, meta in tqdm(test_data_loader):
-        if "multi_target" in meta:
-            targets += meta["multi_target"]
-        else:
-            targets += meta["target"]
-
+        targets += meta["target"]
         ids += meta["text_id"]
         with torch.no_grad():
             out = model.forward(*items)
-            # TODO: save embeddings
             sm = torch.sigmoid(out).cpu().detach().numpy()
-        scores.extend(sm)
+        preds.extend((sm >= 0.5).astype(int))
 
-    binary_scores = [s >= 0.5 for s in scores]
-    binary_scores = np.stack(binary_scores)
-    scores = np.stack(scores)
+    preds = np.stack(preds)
     targets = np.stack(targets)
-    auc_scores = []
+    acc = accuracy_score(targets, preds)
+    prec = precision_score(targets, preds, average="weighted")
+    rec = recall_score(targets, preds, average="weighted")
+    f1 = f1_score(targets, preds, average="weighted")
+    ids = [id.item() for id in ids]
 
-    for class_idx in range(scores.shape[1]):
-        # Only investigate when ground truth is known - not -1
-        mask = targets[:, class_idx] != -1
-        target_binary = targets[mask, class_idx]
-        class_scores = scores[mask, class_idx]
-        try:
-            auc = roc_auc_score(target_binary, class_scores)
-            auc_scores.append(auc)
-        except Exception:
-            warnings.warn(
-                "Only one class present in y_true. ROC AUC score is not defined in that case. Set to nan for now."
-            )
-            auc_scores.append(np.nan)
-
-    mean_auc = np.mean(auc_scores)
-
-    print(scores)
-    print(scores.tolist())
+    print(preds)
     print(targets)
-    print(targets.tolist())
-    print(auc_scores)
-    print(mean_auc)
+    print(f"Accuracy: {acc}")
+    print(f"Precision: {prec}")
+    print(f"Recall: {rec}")
+    print(f"F1 score: {f1}")
     print(ids)
 
     results = {
-        "scores": scores.tolist(),
+        "predictions": preds.tolist(),
         "targets": targets.tolist(),
-        "auc_scores": auc_scores,
-        "mean_auc": mean_auc,
+        "accuracy": acc,
+        "precision": prec,
+        "recall": rec,
+        "f1_score": f1,
         "ids": ids,
     }
 
@@ -133,7 +120,8 @@ if __name__ == "__main__":
     if args.device is not None:
         config["gpus"] = args.device
 
-    results = test_classifier(config, args.test_csv, args.checkpoint, args.device)
+    results = test_classifier(config, args.test_csv,
+                              args.checkpoint, args.device)
     test_set_name = args.test_csv.split("/")[-1:][0]
 
     with open(args.checkpoint[:-4] + f"results_{test_set_name}.json", "w") as f:

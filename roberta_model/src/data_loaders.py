@@ -6,14 +6,18 @@ from torch.utils.data.dataset import Dataset
 
 class DontPatronizeMePCL(Dataset):
     def __init__(self, train_csv_file, val_csv_file, test_csv_file, loss_weight=0.75,
-                 classes=["toxic"], train=True):
-        print(f"Loading data: train={train}")
-        if train:
+                 classes=["toxic"], mode="TRAIN"):
+        print(f"Loading data: mode={mode}")
+        if mode == "TRAIN":
             self.data = self.load_data(train_csv_file)
-        else:
+        elif mode == "VALIDATION":
             self.data = self.load_val(val_csv_file)
+        elif mode == "TEST":
+            self.data = self.load_test(test_csv_file)
+        else:
+            raise "Enter a correct usage mode: TRAIN, VALIDATION or TEST"
 
-        self.train = train
+        self.train = (mode == "TRAIN")
         self.classes = classes
         self.loss_weight = loss_weight
 
@@ -36,6 +40,10 @@ class DontPatronizeMePCL(Dataset):
         train_set = datasets.Dataset.from_pandas(train_set_pd)
         return train_set
 
-    def load_val(self, val_csv_file, add_labels=False):
+    def load_val(self, val_csv_file):
         val_set = self.load_data(val_csv_file)
         return val_set
+    
+    def load_test(self, test_csv_file):
+        test_set = self.load_data(test_csv_file)
+        return test_set
