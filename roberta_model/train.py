@@ -126,7 +126,7 @@ def cli_main():
                         type=int, help="if given, override the num")
 
     args = parser.parse_args()
-    print("Opening config...")
+    print(f"Opening config {args.config}...")
     config = json.load(open(args.config))
 
     if args.device is not None:
@@ -140,9 +140,7 @@ def cli_main():
     dataset = get_instance(module_data, "dataset", config)
     val_dataset = get_instance(module_data, "dataset", config, mode="VALIDATION")
 
-    print("Datasets fetched")
-
-    data_loader = DataLoader(
+    train_data_loader = DataLoader(
         dataset,
         batch_size=int(config["batch_size"]),
         num_workers=args.num_workers,
@@ -151,7 +149,7 @@ def cli_main():
         pin_memory=True,
     )
 
-    valid_data_loader = DataLoader(
+    val_data_loader = DataLoader(
         val_dataset,
         batch_size=config["batch_size"],
         num_workers=args.num_workers,
@@ -159,6 +157,8 @@ def cli_main():
     )
 
     print("Dataset loaded")
+    print(f"\tTrain size: {len(train_data_loader)}")
+    print(f"\tValidation size: {len(val_data_loader)}")
 
     # model
     model = PatronisingClassifier(config)
@@ -166,17 +166,16 @@ def cli_main():
     print("Model created")
 
     # training
-    print("Training started...")
     checkpoint_callback = ModelCheckpoint(
         save_top_k=100,
         verbose=True,
         monitor="val_loss",
         mode="min",
     )
-    print("Checkpoint created")
+    print("Training started...")
     trainer = pl.Trainer(
-        accelerator='cpu',
-        devices=2,
+        accelerator='gpu',
+        devices=1,
         gpus=args.device,
         max_epochs=args.n_epochs,
         accumulate_grad_batches=config["accumulate_grad_batches"],
@@ -186,7 +185,7 @@ def cli_main():
         config["name"],
         deterministic=True,
     )
-    trainer.fit(model, data_loader, valid_data_loader)
+    trainer.fit(model, train_data_loader, val_data_loader)
 
 
 if __name__ == "__main__":

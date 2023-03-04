@@ -5,8 +5,7 @@ from torch.utils.data.dataset import Dataset
 
 
 class DontPatronizeMePCL(Dataset):
-    def __init__(self, train_csv_file, val_csv_file, test_csv_file, loss_weight=0.75,
-                 classes=["toxic"], mode="TRAIN"):
+    def __init__(self, train_csv_file, val_csv_file, test_csv_file, classes, loss_weight=0.75, mode="TRAIN"):
         print(f"Loading data: mode={mode}")
         if mode == "TRAIN":
             self.data = self.load_data(train_csv_file)
