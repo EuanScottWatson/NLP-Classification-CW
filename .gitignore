@@ -2,4 +2,3 @@ roberta_model/src/__pycache__/*
 roberta_model/model_eval/__pycache__/*
 roberta_model/__pycache__/*
 roberta_model/saved*
-roberta_model/slurm_out_files/*
