@@ -31,26 +31,27 @@ class PatronisingClassifier(pl.LightningModule):
 
         self.config = config
 
-        self.fc = nn.Linear(self.model.config.hidden_size, self.num_classes)
-
     def forward(self, x):
-        inputs = self.tokenizer(x, return_tensors="pt", truncation=True, padding=True).to(self.model.device)
+        inputs = self.tokenizer(
+            x, return_tensors="pt", truncation=True, padding=True).to(self.model.device)
         outputs = self.model(**inputs)[0]
-        x = self.fc(outputs)
-        return x
+        return outputs
 
     def training_step(self, batch, batch_idx):
         x, y = batch
+        y = y['target']
         output = self.forward(x)
-        loss = nn.BCEWithLogitsLoss()(output.view(-1), y.float())
+        loss = nn.BCEWithLogitsLoss()(output, y.float())
         self.log("train_loss", loss)
         return {"loss": loss}
 
     def validation_step(self, batch, batch_idx):
         x, y = batch
+        y = y['target']
         output = self.forward(x)
-        loss = nn.BCEWithLogitsLoss()(output.view(-1), y.float())
-        acc = self.binary_accuracy(output.view(-1), y.float())  # using binary accuracy instead
+        loss = nn.BCEWithLogitsLoss()(output, y.float())
+        # using binary accuracy instead
+        acc = self.binary_accuracy(output, y.float())
         self.log("val_loss", loss)
         self.log("val_acc", acc)
         return {"loss": loss, "acc": acc}
@@ -58,11 +59,32 @@ class PatronisingClassifier(pl.LightningModule):
     def test_step(self, batch, batch_idx):
         x, y = batch
         output = self.forward(x)
-        loss = nn.BCEWithLogitsLoss()(output.view(-1), y.float())
-        acc = self.binary_accuracy(output.view(-1), y.float())  # using binary accuracy instead
+        loss = nn.BCEWithLogitsLoss()(output, y.float())
+        # using binary accuracy instead
+        acc = self.binary_accuracy(output, y.float())
         self.log("test_loss", loss)
         self.log("test_acc", acc)
         return {"loss": loss, "acc": acc}
+
+    def binary_accuracy(self, output, target):
+        """Custom binary_accuracy function.
+
+        Args:
+            output ([torch.tensor]): model predictions
+            meta ([dict]): meta dict of tensors including targets and weights
+
+        Returns:
+            [torch.tensor]: model accuracy
+        """
+        with torch.no_grad():
+            pred = torch.sigmoid(output) >= 0.5
+            correct = torch.sum(pred.to(output.device) == target)
+            if len(target) != 0:
+                correct = correct.item() / len(target)
+            else:
+                correct = 0
+
+        return torch.tensor(correct)
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), **self.config["optimizer"]["args"])
@@ -100,7 +122,8 @@ def cli_main():
         type=int,
         help="number of workers used in the data loader (default: 10)",
     )
-    parser.add_argument("-e", "--n_epochs", default=100, type=int, help="if given, override the num")
+    parser.add_argument("-e", "--n_epochs", default=100,
+                        type=int, help="if given, override the num")
 
     args = parser.parse_args()
     print("Opening config...")
@@ -132,7 +155,7 @@ def cli_main():
         val_dataset,
         batch_size=config["batch_size"],
         num_workers=args.num_workers,
-        shuffle=False, # Deterministic
+        shuffle=False,  # Deterministic
     )
 
     print("Dataset loaded")
@@ -152,14 +175,15 @@ def cli_main():
     )
     print("Checkpoint created")
     trainer = pl.Trainer(
-        accelerator='cpu', 
+        accelerator='cpu',
         devices=2,
         gpus=args.device,
         max_epochs=args.n_epochs,
         accumulate_grad_batches=config["accumulate_grad_batches"],
         callbacks=[checkpoint_callback],
         resume_from_checkpoint=args.resume,
-        default_root_dir="/vol/bitbucket/es1519/detecting-hidden-purpose-in-nlp-models/detoxify/saved/" + config["name"],
+        default_root_dir="/vol/bitbucket/es1519/NLPClassification_01/roberta_model/saved/" +
+        config["name"],
         deterministic=True,
     )
     trainer.fit(model, data_loader, valid_data_loader)

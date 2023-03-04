@@ -1,14 +1,14 @@
 {
     "name": "ROBERTA",
     "n_gpu": 1,
-    "batch_size": 5,
+    "batch_size": 10,
     "accumulate_grad_batches": 3,
-    "num_main_classes": 2,
+    "num_main_classes": 1,
     "loss_weight": 0.75,
     "arch": {
         "type": "ROBERTA",
         "args": {
-            "num_classes": 2,
+            "num_classes": 1,
             "model_type": "roberta-base",
             "model_name": "RobertaForSequenceClassification",
             "tokenizer_name": "RobertaTokenizer"
