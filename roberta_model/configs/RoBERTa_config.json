@@ -3,7 +3,7 @@
     "n_gpu": 1,
     "batch_size": 5,
     "accumulate_grad_batches": 3,
-    "num_main_classes": 7,
+    "num_main_classes": 2,
     "loss_weight": 0.75,
     "arch": {
         "type": "ROBERTA",

@@ -1,13 +1,8 @@
 import torch
 import transformers
 
-DOWNLOAD_URL = "https://github.com/unitaryai/detoxify/releases/download/"
 MODEL_URLS = {
-    "original": DOWNLOAD_URL + "v0.1-alpha/toxic_original-c1212f89.ckpt",
-    "unbiased": DOWNLOAD_URL + "v0.3-alpha/toxic_debiased-c7548aa0.ckpt",
-    "multilingual": DOWNLOAD_URL + "v0.4-alpha/multilingual_debiased-0b549669.ckpt",
-    "original-small": DOWNLOAD_URL + "v0.1.2/original-albert-0e1d6498.ckpt",
-    "unbiased-small": DOWNLOAD_URL + "v0.1.2/unbiased-albert-c8519128.ckpt",
+    "roberta-base": "https://huggingface.co/roberta-base/resolve/main/pytorch_model.bin"
 }
 
 PRETRAINED_MODEL = None
@@ -32,7 +27,7 @@ def get_model_and_tokenizer(
     return model, tokenizer
 
 
-def load_checkpoint(model_type="original", checkpoint=None, device="cpu", huggingface_config_path=None):
+def load_checkpoint(model_type="roberta-base", checkpoint=None, device="cpu", huggingface_config_path=None):
     if checkpoint is None:
         checkpoint_path = MODEL_URLS[model_type]
         loaded = torch.hub.load_state_dict_from_url(
@@ -44,13 +39,6 @@ def load_checkpoint(model_type="original", checkpoint=None, device="cpu", huggin
                 "Checkpoint needs to contain the config it was trained with as well as the state dict"
             )
     class_names = loaded["config"]["dataset"]["args"]["classes"]
-    # standardise class names between models
-    change_names = {
-        "toxic": "toxicity",
-        "identity_hate": "identity_attack",
-        "severe_toxic": "severe_toxicity",
-    }
-    class_names = [change_names.get(cl, cl) for cl in class_names]
     model, tokenizer = get_model_and_tokenizer(
         **loaded["config"]["arch"]["args"],
         state_dict=loaded["state_dict"],
@@ -68,35 +56,9 @@ def load_model(model_type, checkpoint=None):
     return model
 
 
-class Detoxify:
-    """Detoxify
-    Easily predict if a comment or list of comments is toxic.
-    Can initialize 5 different model types from model type or checkpoint path:
-        - original:
-            model trained on data from the Jigsaw Toxic Comment
-            Classification Challenge
-        - unbiased:
-            model trained on data from the Jigsaw Unintended Bias in
-            Toxicity Classification Challenge
-        - multilingual:
-            model trained on data from the Jigsaw Multilingual
-            Toxic Comment Classification Challenge
-        - original-small:
-            lightweight version of the original model
-        - unbiased-small:
-            lightweight version of the unbiased model
-    Args:
-        model_type(str): model type to be loaded, can be either original,
-                         unbiased or multilingual
-        checkpoint(str): checkpoint path, defaults to None
-        device(str or torch.device): accepts any torch.device input or
-                                     torch.device object, defaults to cpu
-        huggingface_config_path: path to HF config and tokenizer files needed for offline model loading
-    Returns:
-        results(dict): dictionary of output scores for each class
-    """
-
+class DontPatroniseMe:
     def __init__(self, model_type="original", checkpoint=PRETRAINED_MODEL, device="cpu", huggingface_config_path=None):
+        print("Initialising DontPatroniseMe from dontpatroniseme.py")
         super().__init__()
         self.model, self.tokenizer, self.class_names = load_checkpoint(
             model_type=model_type,
@@ -121,6 +83,3 @@ class Detoxify:
                     scores[ex_i][i].tolist() for ex_i in range(len(scores))]
             )
         return results
-
-def unbiased_toxic_roberta():
-    return load_model("unbiased")

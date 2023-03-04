@@ -1,24 +1,26 @@
-import datasets
 import pandas as pd
 import torch
 from torch.utils.data.dataset import Dataset
 
 
 class DontPatronizeMePCL(Dataset):
-    """Base dataloader for the Jigsaw Toxic Comment Classification Challenges."""
-
     def __init__(self, train_csv_file, val_csv_file, test_csv_file, loss_weight=0.75,
                  classes=["toxic"], train=True):
+        print("Loading data...")
         if train:
             self.data = self.load_data(train_csv_file)
         else:
             self.data = self.load_val(val_csv_file)
+
+        print("Data loaded:")
+        print(self.data)
 
         self.train = train
         self.classes = classes
         self.loss_weight = loss_weight
 
     def __getitem__(self, index):
+        print("__getitem__ called")
         meta = {}
         entry = self.data[index]
         text_id = entry["par_id"]

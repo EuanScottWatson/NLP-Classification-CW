@@ -103,6 +103,7 @@ def cli_main():
     parser.add_argument("-e", "--n_epochs", default=100, type=int, help="if given, override the num")
 
     args = parser.parse_args()
+    print("Opening config...")
     config = json.load(open(args.config))
 
     if args.device is not None:
@@ -112,8 +113,11 @@ def cli_main():
     def get_instance(module, name, config, *args, **kwargs):
         return getattr(module, config[name]["type"])(*args, **config[name]["args"], **kwargs)
 
+    print("Fetching datasets")
     dataset = get_instance(module_data, "dataset", config)
     val_dataset = get_instance(module_data, "dataset", config, train=False)
+
+    print("Datasets fetched")
 
     data_loader = DataLoader(
         dataset,
@@ -130,19 +134,25 @@ def cli_main():
         num_workers=args.num_workers,
         shuffle=False, # Deterministic
     )
+
+    print("Dataset loaded")
+
     # model
     model = PatronisingClassifier(config)
 
-    # training
+    print("Model created")
 
+    # training
+    print("Training started...")
     checkpoint_callback = ModelCheckpoint(
         save_top_k=100,
         verbose=True,
         monitor="val_loss",
         mode="min",
     )
+    print("Checkpoint created")
     trainer = pl.Trainer(
-        accelerator='gpu', 
+        accelerator='cpu', 
         devices=2,
         gpus=args.device,
         max_epochs=args.n_epochs,

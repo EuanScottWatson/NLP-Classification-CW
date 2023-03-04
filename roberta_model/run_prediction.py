@@ -2,7 +2,7 @@ import argparse
 import os
 
 import pandas as pd
-from detoxify import Detoxify
+from dontpatroniseme import DontPatroniseMe
 
 
 def load_input_text(input_obj):
@@ -28,9 +28,9 @@ def run(model_name, input_obj, dest_file, from_ckpt, device="cpu"):
     """
     text = load_input_text(input_obj)
     if model_name is not None:
-        model = Detoxify(model_name, device=device)
+        model = DontPatroniseMe(model_name, device=device)
     else:
-        model = Detoxify(checkpoint=from_ckpt, device=device)
+        model = DontPatroniseMe(checkpoint=from_ckpt, device=device)
     res = model.predict(text)
 
     res_df = pd.DataFrame(res, index=[text] if isinstance(
