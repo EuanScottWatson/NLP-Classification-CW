@@ -17,6 +17,8 @@ def convert_tsv_to_csv(tsv_file_path, csv_file_path):
     csv_writer.writerow(column_headers)
 
     for row in tsv_reader:
+        if not row[4]:
+            continue
         label = int(row[-1])
         if label in [0, 1, 2]:
             label = 0
