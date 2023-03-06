@@ -11,7 +11,7 @@
             "num_classes": 1,
             "model_type": "roberta-base",
             "model_name": "RobertaForSequenceClassification",
-            "tokenizer_name": "RobertaTokenizer",
+            "tokenizer_name": "RobertaTokenizerFast",
             "early_stop": false
         }
     },

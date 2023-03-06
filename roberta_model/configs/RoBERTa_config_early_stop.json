@@ -12,7 +12,7 @@
             "model_type": "roberta-base",
             "model_name": "RobertaForSequenceClassification",
             "tokenizer_name": "RobertaTokenizer",
-            "early_stop": false
+            "early_stop": true
         }
     },
     "dataset": {

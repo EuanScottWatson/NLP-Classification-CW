@@ -30,14 +30,12 @@ class PatronisingClassifier(pl.LightningModule):
               self.model_args["num_classes"],
         )
         self.bias_loss = False
-
         self.loss_weight = config["loss_weight"]
-
         self.config = config
 
     def forward(self, x):
         inputs = self.tokenizer(
-            x, return_tensors="pt", truncation=True, padding=True
+            list(x), return_tensors="pt", truncation=True, padding=True
         ).to(self.model.device)
         outputs = self.model(**inputs)[0]
         return outputs
