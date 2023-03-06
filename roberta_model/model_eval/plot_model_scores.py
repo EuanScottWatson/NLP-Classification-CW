@@ -22,6 +22,11 @@ def plot(json_path, save_path):
     rec_scores = [epoch_data['recall'] for epoch_data in ordered_data.values()]
     f1_scores = [epoch_data['f1_score'] for epoch_data in ordered_data.values()]
 
+    top_epochs = sorted(ordered_data.items(), key=lambda x: x[1]['f1_score'], reverse=True)[:5]
+    for epoch, scores in top_epochs:
+        print(f"Epoch {epoch}: F1 score = {scores['f1_score']:.3f}, Precision = {scores['precision']:.3f}, Recall = {scores['recall']:.3f}, Accuracy = {scores['accuracy']:.3f}")
+
+
     # Plot the scores over time
     epochs = range(len(data))
     plt.plot(epochs, acc_scores, label='Accuracy')
