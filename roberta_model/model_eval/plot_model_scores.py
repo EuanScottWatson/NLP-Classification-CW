@@ -1,6 +1,7 @@
 import json
 import matplotlib.pyplot as plt
 import argparse
+from collections import OrderedDict
 
 def plot(json_path, save_path):
 
@@ -8,11 +9,23 @@ def plot(json_path, save_path):
     with open(json_path, 'r') as f:
         data = json.load(f)
 
+    formatted_data = {}
+    for epoch_str, scores in data.items():
+        epoch_string = epoch_str.split("-step")[0].split("=")[1]
+        formatted_data[int(epoch_string)] = scores
+
+    ordered_data = OrderedDict(sorted(formatted_data.items()))
+
     # Extract the scores for each metric
-    acc_scores = [epoch_data['accuracy'] for epoch_data in data.values()]
-    prec_scores = [epoch_data['precision'] for epoch_data in data.values()]
-    rec_scores = [epoch_data['recall'] for epoch_data in data.values()]
-    f1_scores = [epoch_data['f1_score'] for epoch_data in data.values()]
+    acc_scores = [epoch_data['accuracy'] for epoch_data in ordered_data.values()]
+    prec_scores = [epoch_data['precision'] for epoch_data in ordered_data.values()]
+    rec_scores = [epoch_data['recall'] for epoch_data in ordered_data.values()]
+    f1_scores = [epoch_data['f1_score'] for epoch_data in ordered_data.values()]
+
+    top_epochs = sorted(ordered_data.items(), key=lambda x: x[1]['f1_score'], reverse=True)[:5]
+    for epoch, scores in top_epochs:
+        print(f"Epoch {epoch}: F1 score = {scores['f1_score']:.3f}, Precision = {scores['precision']:.3f}, Recall = {scores['recall']:.3f}, Accuracy = {scores['accuracy']:.3f}")
+
 
     # Plot the scores over time
     epochs = range(len(data))

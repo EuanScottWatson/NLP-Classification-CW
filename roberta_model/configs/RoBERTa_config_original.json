@@ -5,6 +5,10 @@
     "accumulate_grad_batches": 3,
     "num_main_classes": 1,
     "loss_weight": 0.75,
+    "training": {
+        "early_stop": true,
+        "lower_case_tokenizer": false
+    },
     "arch": {
         "type": "ROBERTA",
         "args": {
@@ -17,7 +21,7 @@
     "dataset": {
         "type": "DontPatronizeMePCL",
         "args": {
-            "train_csv_file": "/vol/bitbucket/es1519/NLPClassification_01/roberta_model/DontPatronizeMe/csv_files/original/train.csv",
+            "train_csv_file": "/vol/bitbucket/es1519/NLPClassification_01/roberta_model/DontPatronizeMe/csv_files/original/train_upsampled.csv",
             "val_csv_file": "/vol/bitbucket/es1519/NLPClassification_01/roberta_model/DontPatronizeMe/csv_files/original/valid.csv",
             "test_csv_file": "/vol/bitbucket/es1519/NLPClassification_01/roberta_model/DontPatronizeMe/csv_files/original/dev.csv",
             "loss_weight": 0.75,

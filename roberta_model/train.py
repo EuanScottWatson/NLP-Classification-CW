@@ -169,11 +169,6 @@ def cli_main():
 
     print("Model created")
 
-    # early stopping
-    early_stop_callback = EarlyStopping(
-        monitor="val_loss", patience=3, verbose=False, mode="min"
-    )
-
     # training
     checkpoint_callback = ModelCheckpoint(
         save_top_k=100,
@@ -181,6 +176,15 @@ def cli_main():
         monitor="val_loss",
         mode="min",
     )
+    
+    callbacks = [checkpoint_callback]
+    if config["training"]["early_stop"]:
+        print("Implementing Early Stop")
+        early_stop_callback = EarlyStopping(
+            monitor="val_loss", patience=3, verbose=False, mode="min"
+        )
+        callbacks.append(early_stop_callback)
+
     print("Training started...")
     trainer = pl.Trainer(
         accelerator="gpu",
@@ -188,7 +192,7 @@ def cli_main():
         gpus=args.device,
         max_epochs=args.n_epochs,
         accumulate_grad_batches=config["accumulate_grad_batches"],
-        callbacks=[checkpoint_callback, early_stop_callback],
+        callbacks=callbacks,
         resume_from_checkpoint=args.resume,
         default_root_dir="/vol/bitbucket/es1519/NLPClassification_01/roberta_model/saved/"
         + config["name"],
