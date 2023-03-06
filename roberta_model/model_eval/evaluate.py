@@ -1,6 +1,6 @@
 import argparse
 import json
-import warnings
+import pandas as pd
 
 import sys
 sys.path.insert(1, '/vol/bitbucket/es1519/NLPClassification_01/roberta_model/src')
@@ -13,10 +13,10 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from train import PatronisingClassifier
-
+from transformers import logging
+logging.set_verbosity_error()
 
 def test_single_input(config, input, checkpoint_path, device="cuda:0"):
-
     model = PatronisingClassifier(config)
     checkpoint = torch.load(checkpoint_path, map_location=device)
     model.load_state_dict(checkpoint["state_dict"])
@@ -25,8 +25,10 @@ def test_single_input(config, input, checkpoint_path, device="cuda:0"):
     with torch.no_grad():
         out = model.forward(input)
         sm = torch.sigmoid(out).cpu().detach().numpy()
-        print(out)
-        print(sm)
+
+    res_df = pd.DataFrame(sm, index=[input] if isinstance(
+        input, str) else input, columns=["Patronising"]).round(5)
+    print(res_df)
 
 
 def test_classifier(config, dataset, checkpoint_path, device="cuda:0"):
@@ -136,7 +138,6 @@ if __name__ == "__main__":
         config["gpus"] = args.device
 
     if args.input is not None:
-        print("Testing single input")
         test_single_input(config, args.input, args.checkpoint, args.device)
     else:
         results = test_classifier(config, args.test_csv,

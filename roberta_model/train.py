@@ -20,7 +20,6 @@ class PatronisingClassifier(pl.LightningModule):
 
     def __init__(self, config):
         super().__init__()
-        print(f"Batch size: {config['batch_size']}")
         self.save_hyperparameters()
         self.num_classes = config["arch"]["args"]["num_classes"]
         self.model_args = config["arch"]["args"]
@@ -156,6 +155,7 @@ def cli_main():
         shuffle=False,  # Deterministic
     )
 
+    print(f"Batch size: {config['batch_size']}")
     print("Dataset loaded")
     print(f"\tTrain size: {len(train_data_loader)}")
     print(f"\tValidation size: {len(val_data_loader)}")
