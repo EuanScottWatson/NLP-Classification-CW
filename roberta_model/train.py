@@ -9,6 +9,7 @@ from src.utils import get_model_and_tokenizer
 from torch.nn import functional as F
 import torch.nn as nn
 from torch.utils.data import DataLoader
+from transformers.optimization import Adafactor, AdafactorSchedule
 
 
 class PatronisingClassifier(pl.LightningModule):
@@ -23,19 +24,16 @@ class PatronisingClassifier(pl.LightningModule):
         self.save_hyperparameters()
         self.num_classes = config["arch"]["args"]["num_classes"]
         self.model_args = config["arch"]["args"]
-        self.model, self.tokenizer = get_model_and_tokenizer(
-              self.model_args["model_type"],
-              self.model_args["model_name"],
-              self.model_args["tokenizer_name"],
-              self.model_args["num_classes"],
-        )
+        self.model, self.tokenizer = get_model_and_tokenizer(**self.model_args)
         self.bias_loss = False
+
         self.loss_weight = config["loss_weight"]
+
         self.config = config
 
     def forward(self, x):
         inputs = self.tokenizer(
-            list(x), return_tensors="pt", truncation=True, padding=True
+            x, return_tensors="pt", truncation=True, padding=True
         ).to(self.model.device)
         outputs = self.model(**inputs)[0]
         return outputs
@@ -90,7 +88,23 @@ class PatronisingClassifier(pl.LightningModule):
         return torch.tensor(correct)
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), **self.config["optimizer"]["args"])
+        schedule_lr = self.config["optimizer"].get("schedule_lr", False)
+
+        if not schedule_lr:
+            return torch.optim.Adam(
+                self.parameters(), **self.config["optimizer"]["args"]
+            )
+
+        optimizer = Adafactor(
+            self.parameters(),
+            scale_parameter=True,
+            relative_step=True,
+            warmup_init=True,
+            lr=None,
+        )
+        lr_scheduler = AdafactorSchedule(optimizer)
+
+        return [optimizer], [lr_scheduler]
 
 
 def cli_main():
@@ -181,7 +195,7 @@ def cli_main():
     )
 
     callbacks = [checkpoint_callback]
-    if config["arch"]["args"]["early_stop"]:
+    if config["training"]["early_stop"]:
         print("Implementing Early Stop")
         early_stop_callback = EarlyStopping(
             monitor="val_loss", patience=3, verbose=False, mode="min"
@@ -191,14 +205,14 @@ def cli_main():
     print("Training started...")
     trainer = pl.Trainer(
         accelerator="gpu",
-        devices=2,
+        devices=int(config.get("n_gpu", 1)),
         gpus=args.device,
         max_epochs=args.n_epochs,
         accumulate_grad_batches=config["accumulate_grad_batches"],
         callbacks=callbacks,
         resume_from_checkpoint=args.resume,
-        default_root_dir="/vol/bitbucket/es1519/NLPClassification_01/roberta_model/saved/"
-        + config["name"],
+        # default_root_dir="/vol/bitbucket/es1519/NLPClassification_01/roberta_model/saved/"
+        default_root_dir="./" + config["name"],
         deterministic=True,
     )
     trainer.fit(model, train_data_loader, val_data_loader)
