@@ -136,11 +136,12 @@ def cli_main():
         return getattr(module, config[name]["type"])(*args, **config[name]["args"], **kwargs)
 
     print("Fetching datasets")
-    dataset = get_instance(module_data, "dataset", config)
-    val_dataset = get_instance(module_data, "dataset", config, mode="VALIDATION")
+    train_dataset = get_instance(module_data, "dataset", config)
+    val_dataset = get_instance(
+        module_data, "dataset", config, mode="VALIDATION")
 
     train_data_loader = DataLoader(
-        dataset,
+        train_dataset,
         batch_size=int(config["batch_size"]),
         num_workers=args.num_workers,
         shuffle=True,
