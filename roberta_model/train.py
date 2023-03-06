@@ -171,7 +171,7 @@ def cli_main():
 
     # early stopping
     early_stop_callback = EarlyStopping(
-        monitor="val_loss", min_delta=0.00, patience=3, verbose=False, mode="max"
+        monitor="val_loss", patience=3, verbose=False, mode="min"
     )
 
     # training

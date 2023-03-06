@@ -17,9 +17,9 @@
     "dataset": {
         "type": "DontPatronizeMePCL",
         "args": {
-            "train_csv_file": "/vol/bitbucket/es1519/NLPClassification_01/roberta_model/DontPatronizeMe/csv_files/upsampled/dontpatronizeme_pcl_train_upsampled.csv",
-            "val_csv_file": "/vol/bitbucket/es1519/NLPClassification_01/roberta_model/DontPatronizeMe/csv_files/upsampled/dontpatronizeme_pcl_val_upsampled.csv",
-            "test_csv_file": "/vol/bitbucket/es1519/NLPClassification_01/roberta_model/DontPatronizeMe/csv_files/upsampled/dontpatronizeme_pcl_test_upsampled.csv",
+            "train_csv_file": "/vol/bitbucket/es1519/NLPClassification_01/roberta_model/DontPatronizeMe/csv_files/upsampled/dontpatronizeme_pcl_train.csv",
+            "val_csv_file": "/vol/bitbucket/es1519/NLPClassification_01/roberta_model/DontPatronizeMe/csv_files/dontpatronizeme_pcl_val.csv",
+            "test_csv_file": "/vol/bitbucket/es1519/NLPClassification_01/roberta_model/DontPatronizeMe/csv_files/dontpatronizeme_pcl_test.csv",
             "loss_weight": 0.75,
             "classes": [
                 "label"
