@@ -4,7 +4,7 @@ import json
 import pytorch_lightning as pl
 import src.data_loaders as module_data
 import torch
-from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from src.utils import get_model_and_tokenizer
 from torch.nn import functional as F
 import torch.nn as nn
@@ -32,13 +32,14 @@ class PatronisingClassifier(pl.LightningModule):
 
     def forward(self, x):
         inputs = self.tokenizer(
-            x, return_tensors="pt", truncation=True, padding=True).to(self.model.device)
+            x, return_tensors="pt", truncation=True, padding=True
+        ).to(self.model.device)
         outputs = self.model(**inputs)[0]
         return outputs
 
     def training_step(self, batch, batch_idx):
         x, y = batch
-        y = y['target']
+        y = y["target"]
         output = self.forward(x)
         loss = nn.BCEWithLogitsLoss()(output, y.float())
         self.log("train_loss", loss)
@@ -46,7 +47,7 @@ class PatronisingClassifier(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         x, y = batch
-        y = y['target']
+        y = y["target"]
         output = self.forward(x)
         loss = nn.BCEWithLogitsLoss()(output, y.float())
         # using binary accuracy instead
@@ -121,8 +122,9 @@ def cli_main():
         type=int,
         help="number of workers used in the data loader (default: 10)",
     )
-    parser.add_argument("-e", "--n_epochs", default=100,
-                        type=int, help="if given, override the num")
+    parser.add_argument(
+        "-e", "--n_epochs", default=100, type=int, help="if given, override the num"
+    )
 
     args = parser.parse_args()
     print(f"Opening config {args.config}...")
@@ -133,12 +135,13 @@ def cli_main():
 
     # data
     def get_instance(module, name, config, *args, **kwargs):
-        return getattr(module, config[name]["type"])(*args, **config[name]["args"], **kwargs)
+        return getattr(module, config[name]["type"])(
+            *args, **config[name]["args"], **kwargs
+        )
 
     print("Fetching datasets")
     train_dataset = get_instance(module_data, "dataset", config)
-    val_dataset = get_instance(
-        module_data, "dataset", config, mode="VALIDATION")
+    val_dataset = get_instance(module_data, "dataset", config, mode="VALIDATION")
 
     train_data_loader = DataLoader(
         train_dataset,
@@ -166,6 +169,11 @@ def cli_main():
 
     print("Model created")
 
+    # early stopping
+    early_stop_callback = EarlyStopping(
+        monitor="val_loss", min_delta=0.00, patience=3, verbose=False, mode="max"
+    )
+
     # training
     checkpoint_callback = ModelCheckpoint(
         save_top_k=100,
@@ -175,15 +183,15 @@ def cli_main():
     )
     print("Training started...")
     trainer = pl.Trainer(
-        accelerator='gpu',
+        accelerator="gpu",
         devices=2,
         gpus=args.device,
         max_epochs=args.n_epochs,
         accumulate_grad_batches=config["accumulate_grad_batches"],
-        callbacks=[checkpoint_callback],
+        callbacks=[checkpoint_callback, early_stop_callback],
         resume_from_checkpoint=args.resume,
-        default_root_dir="/vol/bitbucket/es1519/NLPClassification_01/roberta_model/saved/" +
-        config["name"],
+        default_root_dir="/vol/bitbucket/es1519/NLPClassification_01/roberta_model/saved/"
+        + config["name"],
         deterministic=True,
     )
     trainer.fit(model, train_data_loader, val_data_loader)
