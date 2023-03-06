@@ -232,7 +232,7 @@ def cli_main():
         accumulate_grad_batches=config["accumulate_grad_batches"],
         callbacks=callbacks,
         resume_from_checkpoint=args.resume,
-        default_root_dir="/vol/bitbucket/es1519/NLPClassification_01/roberta_model/saved/",
+        default_root_dir="/vol/bitbucket/es1519/NLPClassification_01/roberta_model/saved/" + config["name"],
         deterministic=True,
     )
     trainer.fit(model, train_data_loader, val_data_loader)
