@@ -4,7 +4,7 @@ import json
 import pytorch_lightning as pl
 import src.data_loaders as module_data
 import torch
-from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
+from pytorch_lightning.callbacks import ModelCheckpoint
 from src.utils import get_model_and_tokenizer
 from torch.nn import functional as F
 import torch.nn as nn
@@ -169,11 +169,6 @@ def cli_main():
 
     print("Model created")
 
-    # early stopping
-    early_stop_callback = EarlyStopping(
-        monitor="val_loss", patience=3, verbose=False, mode="min"
-    )
-
     # training
     checkpoint_callback = ModelCheckpoint(
         save_top_k=100,
@@ -188,7 +183,7 @@ def cli_main():
         gpus=args.device,
         max_epochs=args.n_epochs,
         accumulate_grad_batches=config["accumulate_grad_batches"],
-        callbacks=[checkpoint_callback, early_stop_callback],
+        callbacks=[checkpoint_callback],
         resume_from_checkpoint=args.resume,
         default_root_dir="/vol/bitbucket/es1519/NLPClassification_01/roberta_model/saved/"
         + config["name"],
