@@ -5,6 +5,10 @@
     "accumulate_grad_batches": 3,
     "num_main_classes": 1,
     "loss_weight": 0.75,
+    "training": {
+        "early_stop": true,
+        "lower_case_tokenizer": false
+    },
     "arch": {
         "type": "ROBERTA",
         "args": {
