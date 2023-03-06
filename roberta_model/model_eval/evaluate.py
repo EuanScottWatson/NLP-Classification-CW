@@ -9,14 +9,27 @@ sys.path.insert(1, '/vol/bitbucket/es1519/NLPClassification_01/roberta_model')
 import numpy as np
 import src.data_loaders as module_data
 import torch
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from train import PatronisingClassifier
 
 
-def test_classifier(config, dataset, checkpoint_path, device="cuda:0"):
+def test_single_input(config, input, checkpoint_path, device="cuda:0"):
 
+    model = PatronisingClassifier(config)
+    checkpoint = torch.load(checkpoint_path, map_location=device)
+    model.load_state_dict(checkpoint["state_dict"])
+    model.eval()  # Sets to evaluation mode (disable dropout + batch normalisation)
+    model.to(device)
+    with torch.no_grad():
+        out = model.forward(input)
+        sm = torch.sigmoid(out).cpu().detach().numpy()
+        print(out)
+        print(sm)
+
+
+def test_classifier(config, dataset, checkpoint_path, device="cuda:0"):
     model = PatronisingClassifier(config)
     checkpoint = torch.load(checkpoint_path, map_location=device)
     model.load_state_dict(checkpoint["state_dict"])
@@ -29,11 +42,8 @@ def test_classifier(config, dataset, checkpoint_path, device="cuda:0"):
     config["dataset"]["args"]["test_csv_file"] = dataset
 
     print(f"Dataset: {dataset}")
-    print(config)
 
     test_dataset = get_instance(module_data, "dataset", config, mode="TEST")
-
-    print(test_dataset)
 
     test_data_loader = DataLoader(
         test_dataset,
@@ -41,8 +51,6 @@ def test_classifier(config, dataset, checkpoint_path, device="cuda:0"):
         num_workers=20,
         shuffle=False,
     )
-
-    print(test_data_loader)
 
     preds = []
     targets = []
@@ -55,6 +63,11 @@ def test_classifier(config, dataset, checkpoint_path, device="cuda:0"):
             sm = torch.sigmoid(out).cpu().detach().numpy()
         preds.extend((sm >= 0.5).astype(int))
 
+    print(f"Number of predicted 0s: {len([p for p in preds if p == 0])}")
+    print(f"Number of actual 0s: {len([t for t in targets if t == 0])}")
+    print(f"Number of predicted 1s: {len([p for p in preds if p == 1])}")
+    print(f"Number of actual 1s: {len([t for t in targets if t == 1])}")
+
     preds = np.stack(preds)
     targets = np.stack(targets)
     acc = accuracy_score(targets, preds)
@@ -63,15 +76,12 @@ def test_classifier(config, dataset, checkpoint_path, device="cuda:0"):
     f1 = f1_score(targets, preds, average="weighted")
     ids = [id.item() for id in ids]
 
-    print(preds)
-    print(targets)
     print(f"Accuracy: {acc}")
     print(f"Precision: {prec}")
     print(f"Recall: {rec}")
     print(f"F1 score: {f1}")
-    print(ids)
 
-    results = {
+    return {
         "predictions": preds.tolist(),
         "targets": targets.tolist(),
         "accuracy": acc,
@@ -80,8 +90,6 @@ def test_classifier(config, dataset, checkpoint_path, device="cuda:0"):
         "f1_score": f1,
         "ids": ids,
     }
-
-    return results
 
 
 if __name__ == "__main__":
@@ -113,6 +121,13 @@ if __name__ == "__main__":
         type=str,
         help="path to test dataset",
     )
+    parser.add_argument(
+        "-i",
+        "--input",
+        default=None,
+        type=str,
+        help="Single input test"
+    )
 
     args = parser.parse_args()
     config = json.load(open(args.config))
@@ -120,9 +135,13 @@ if __name__ == "__main__":
     if args.device is not None:
         config["gpus"] = args.device
 
-    results = test_classifier(config, args.test_csv,
-                              args.checkpoint, args.device)
-    test_set_name = args.test_csv.split("/")[-1:][0]
+    if args.input is not None:
+        print("Testing single input")
+        test_single_input(config, args.input, args.checkpoint, args.device)
+    else:
+        results = test_classifier(config, args.test_csv,
+                                  args.checkpoint, args.device)
+        test_set_name = args.test_csv.split("/")[-1:][0]
 
-    with open(args.checkpoint[:-4] + f"results_{test_set_name}.json", "w") as f:
-        json.dump(results, f)
+        with open(args.checkpoint[:-4] + f"results_{test_set_name}.json", "w") as f:
+            json.dump(results, f)

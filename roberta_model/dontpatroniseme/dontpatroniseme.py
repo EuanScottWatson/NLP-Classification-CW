@@ -28,16 +28,11 @@ def get_model_and_tokenizer(
 
 
 def load_checkpoint(model_type="roberta-base", checkpoint=None, device="cpu", huggingface_config_path=None):
-    if checkpoint is None:
-        checkpoint_path = MODEL_URLS[model_type]
-        loaded = torch.hub.load_state_dict_from_url(
-            checkpoint_path, map_location=device)
-    else:
-        loaded = torch.load(checkpoint, map_location=device)
-        if "config" not in loaded or "state_dict" not in loaded:
-            raise ValueError(
-                "Checkpoint needs to contain the config it was trained with as well as the state dict"
-            )
+    loaded = torch.load(checkpoint, map_location=device)
+    if "config" not in loaded or "state_dict" not in loaded:
+        raise ValueError(
+            "Checkpoint needs to contain the config it was trained with as well as the state dict"
+        )
     class_names = loaded["config"]["dataset"]["args"]["classes"]
     model, tokenizer = get_model_and_tokenizer(
         **loaded["config"]["arch"]["args"],
@@ -48,17 +43,8 @@ def load_checkpoint(model_type="roberta-base", checkpoint=None, device="cpu", hu
     return model, tokenizer, class_names
 
 
-def load_model(model_type, checkpoint=None):
-    if checkpoint is None:
-        model, _, _ = load_checkpoint(model_type=model_type)
-    else:
-        model, _, _ = load_checkpoint(checkpoint=checkpoint)
-    return model
-
-
 class DontPatroniseMe:
     def __init__(self, model_type="original", checkpoint=PRETRAINED_MODEL, device="cpu", huggingface_config_path=None):
-        print("Initialising DontPatroniseMe from dontpatroniseme.py")
         super().__init__()
         self.model, self.tokenizer, self.class_names = load_checkpoint(
             model_type=model_type,
