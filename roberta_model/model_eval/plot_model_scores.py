@@ -14,7 +14,7 @@ def plot(json_path, save_path):
         epoch_string = epoch_str.split("-step")[0].split("=")[1]
         formatted_data[int(epoch_string)] = scores
 
-    ordered_data = OrderedDict(sorted(formatted_data.items()))
+    ordered_data = OrderedDict(sorted(formatted_data.items())[:10])
 
     # Extract the scores for each metric
     acc_scores = [epoch_data['accuracy'] for epoch_data in ordered_data.values()]
@@ -27,17 +27,18 @@ def plot(json_path, save_path):
         print(f"Epoch {epoch}: F1 score = {scores['f1_score']:.3f}, Precision = {scores['precision']:.3f}, Recall = {scores['recall']:.3f}, Accuracy = {scores['accuracy']:.3f}")
 
 
-    # Plot the scores over time
-    epochs = range(len(data))
-    plt.plot(epochs, acc_scores, label='Accuracy')
-    plt.plot(epochs, prec_scores, label='Precision')
-    plt.plot(epochs, rec_scores, label='Recall')
-    plt.plot(epochs, f1_scores, label='F1-score')
-    plt.xlabel('Epochs')
-    plt.ylabel('Score')
-    plt.title("Evaluation Metrics per Epoch")
-    plt.legend()
-    plt.savefig(save_path)
+    if save_path:
+        # Plot the scores over time
+        epochs = range(len(ordered_data))
+        plt.plot(epochs, acc_scores, label='Accuracy')
+        plt.plot(epochs, prec_scores, label='Precision')
+        plt.plot(epochs, rec_scores, label='Recall')
+        plt.plot(epochs, f1_scores, label='F1-score')
+        plt.xlabel('Epochs')
+        plt.ylabel('Score')
+        plt.title("Evaluation Metrics per Epoch")
+        plt.legend()
+        plt.savefig(save_path)
 
 
 if __name__ == "__main__":

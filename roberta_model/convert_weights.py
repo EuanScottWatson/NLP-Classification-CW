@@ -85,7 +85,7 @@ if __name__ == "__main__":
         converted_folder = os.path.join(args.folder, "converted")
     else:
         directory, _ = os.path.split(args.checkpoint)
-        converted_folder = os.path.join(args.folder, "converted")
+        converted_folder = os.path.join(directory, "converted")
 
 
     if not os.path.exists(converted_folder):

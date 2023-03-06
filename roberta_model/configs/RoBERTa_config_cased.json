@@ -9,9 +9,9 @@
         "type": "ROBERTA",
         "args": {
             "num_classes": 1,
-            "model_type": "roberta-base",
+            "model_type": "bert-base-cased",
             "model_name": "RobertaForSequenceClassification",
-            "tokenizer_name": "RobertaTokenizer",
+            "tokenizer_name": "AutoTokenizer",
             "early_stop": false
         }
     },
