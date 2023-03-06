@@ -1,6 +1,6 @@
 {
     "name": "ROBERTA",
-    "n_gpu": 1,
+    "n_gpu": 2,
     "batch_size": 10,
     "accumulate_grad_batches": 3,
     "num_main_classes": 1,

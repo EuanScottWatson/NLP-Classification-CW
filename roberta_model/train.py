@@ -24,16 +24,20 @@ class PatronisingClassifier(pl.LightningModule):
         self.save_hyperparameters()
         self.num_classes = config["arch"]["args"]["num_classes"]
         self.model_args = config["arch"]["args"]
-        self.model, self.tokenizer = get_model_and_tokenizer(**self.model_args)
+        self.model, self.tokenizer = get_model_and_tokenizer(
+            self.model_args["model_type"],
+            self.model_args["model_name"],
+            self.model_args["tokenizer_name"],
+            self.model_args["num_classes"],
+        )
+
         self.bias_loss = False
-
         self.loss_weight = config["loss_weight"]
-
         self.config = config
 
     def forward(self, x):
         inputs = self.tokenizer(
-            x, return_tensors="pt", truncation=True, padding=True
+            list(x), return_tensors="pt", truncation=True, padding=True
         ).to(self.model.device)
         outputs = self.model(**inputs)[0]
         return outputs
@@ -158,7 +162,8 @@ def cli_main():
 
     print("Fetching datasets")
     train_dataset = get_instance(module_data, "dataset", config)
-    val_dataset = get_instance(module_data, "dataset", config, mode="VALIDATION")
+    val_dataset = get_instance(
+        module_data, "dataset", config, mode="VALIDATION")
 
     train_data_loader = DataLoader(
         train_dataset,
@@ -195,7 +200,7 @@ def cli_main():
     )
 
     callbacks = [checkpoint_callback]
-    if config["training"]["early_stop"]:
+    if config["arch"]["args"]["early_stop"]:
         print("Implementing Early Stop")
         early_stop_callback = EarlyStopping(
             monitor="val_loss", patience=3, verbose=False, mode="min"
@@ -211,8 +216,7 @@ def cli_main():
         accumulate_grad_batches=config["accumulate_grad_batches"],
         callbacks=callbacks,
         resume_from_checkpoint=args.resume,
-        # default_root_dir="/vol/bitbucket/es1519/NLPClassification_01/roberta_model/saved/"
-        default_root_dir="./" + config["name"],
+        default_root_dir="/vol/bitbucket/es1519/NLPClassification_01/roberta_model/saved/",
         deterministic=True,
     )
     trainer.fit(model, train_data_loader, val_data_loader)
