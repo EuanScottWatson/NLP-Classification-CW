@@ -1,11 +1,12 @@
 import argparse
 import json
 import pandas as pd
-
 import sys
+
 sys.path.insert(1, '/vol/bitbucket/es1519/NLPClassification_01/roberta_model/src')
 sys.path.insert(1, '/vol/bitbucket/es1519/NLPClassification_01/roberta_model')
 
+import os
 import numpy as np
 import src.data_loaders as module_data
 import torch
@@ -31,7 +32,35 @@ def test_single_input(config, input, checkpoint_path, device="cuda:0"):
     print(res_df)
 
 
-def test_classifier(config, dataset, checkpoint_path, device="cuda:0"):
+def test_folder_of_checkpoints(folder_path, config, test_csv, device):
+    print(f"Testing checkpoints found in {folder_path}")
+    checkpoint_paths = []
+    for root, _, files in os.walk(folder_path):
+        for file in files:
+            if file.endswith(".ckpt"):
+                checkpoint_path = os.path.join(root, file)
+                checkpoint_paths.append(checkpoint_path)
+    checkpoint_paths = sorted(checkpoint_paths)
+    print(f"{len(checkpoint_paths)} checkpoints found")
+    print("Testing...")
+
+    checkpoint_results = {}
+
+    for checkpoint_path in checkpoint_paths:
+        print(f"Evaluating: {checkpoint_path}")
+        _, file_name = os.path.split(checkpoint_path)
+
+        results = test_classifier(config, test_csv,
+                                  checkpoint_path, device)
+
+        checkpoint_results[file_name] = results
+    
+    print(checkpoint_results)
+    with open(folder_path + "_folder_results.json", "w") as f:
+        json.dump(checkpoint_results, f)
+
+
+def test_classifier(config, dataset, checkpoint_path, device="cuda:0", log=False):
     model = PatronisingClassifier(config)
     checkpoint = torch.load(checkpoint_path, map_location=device)
     model.load_state_dict(checkpoint["state_dict"])
@@ -65,11 +94,6 @@ def test_classifier(config, dataset, checkpoint_path, device="cuda:0"):
             sm = torch.sigmoid(out).cpu().detach().numpy()
         preds.extend((sm >= 0.5).astype(int))
 
-    print(f"Number of predicted 0s: {len([p for p in preds if p == 0])}")
-    print(f"Number of actual 0s: {len([t for t in targets if t == 0])}")
-    print(f"Number of predicted 1s: {len([p for p in preds if p == 1])}")
-    print(f"Number of actual 1s: {len([t for t in targets if t == 1])}")
-
     preds = np.stack(preds)
     targets = np.stack(targets)
     acc = accuracy_score(targets, preds)
@@ -78,20 +102,33 @@ def test_classifier(config, dataset, checkpoint_path, device="cuda:0"):
     f1 = f1_score(targets, preds, average="weighted")
     ids = [id.item() for id in ids]
 
-    print(f"Accuracy: {acc}")
-    print(f"Precision: {prec}")
-    print(f"Recall: {rec}")
-    print(f"F1 score: {f1}")
+    if log:
+        print(f"Number of predicted 0s: {len([p for p in preds if p == 0])}")
+        print(f"Number of actual 0s: {len([t for t in targets if t == 0])}")
+        print(f"Number of predicted 1s: {len([p for p in preds if p == 1])}")
+        print(f"Number of actual 1s: {len([t for t in targets if t == 1])}")
+        
+        print(f"Accuracy: {acc}")
+        print(f"Precision: {prec}")
+        print(f"Recall: {rec}")
+        print(f"F1 score: {f1}")
+
+        return {
+            "predictions": preds.tolist(),
+            "targets": targets.tolist(),
+            "accuracy": acc,
+            "precision": prec,
+            "recall": rec,
+            "f1_score": f1,
+            "ids": ids,
+        }
 
     return {
-        "predictions": preds.tolist(),
-        "targets": targets.tolist(),
-        "accuracy": acc,
-        "precision": prec,
-        "recall": rec,
-        "f1_score": f1,
-        "ids": ids,
-    }
+            "accuracy": acc,
+            "precision": prec,
+            "recall": rec,
+            "f1_score": f1,
+        }
 
 
 if __name__ == "__main__":
@@ -130,6 +167,12 @@ if __name__ == "__main__":
         type=str,
         help="Single input test"
     )
+    parser.add_argument(
+        "--folder",
+        default=None,
+        type=str,
+        help="Folder of converted checkpoints"
+    )
 
     args = parser.parse_args()
     config = json.load(open(args.config))
@@ -137,11 +180,13 @@ if __name__ == "__main__":
     if args.device is not None:
         config["gpus"] = args.device
 
-    if args.input is not None:
+    if args.folder:
+        test_folder_of_checkpoints(args.folder, config, args.test_csv, args.device)
+    elif args.input:
         test_single_input(config, args.input, args.checkpoint, args.device)
     else:
         results = test_classifier(config, args.test_csv,
-                                  args.checkpoint, args.device)
+                                  args.checkpoint, args.device, log=True)
         test_set_name = args.test_csv.split("/")[-1:][0]
 
         with open(args.checkpoint[:-4] + f"results_{test_set_name}.json", "w") as f:
