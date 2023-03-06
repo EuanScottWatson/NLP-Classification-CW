@@ -23,7 +23,12 @@ class PatronisingClassifier(pl.LightningModule):
         self.save_hyperparameters()
         self.num_classes = config["arch"]["args"]["num_classes"]
         self.model_args = config["arch"]["args"]
-        self.model, self.tokenizer = get_model_and_tokenizer(**self.model_args)
+        self.model, self.tokenizer = get_model_and_tokenizer(
+              self.model_args["model_type"],
+              self.model_args["model_name"],
+              self.model_args["tokenizer_name"],
+              self.model_args["num_classes"],
+        )
         self.bias_loss = False
 
         self.loss_weight = config["loss_weight"]
@@ -176,9 +181,9 @@ def cli_main():
         monitor="val_loss",
         mode="min",
     )
-    
+
     callbacks = [checkpoint_callback]
-    if config["training"]["early_stop"]:
+    if config["arch"]["args"]["early_stop"]:
         print("Implementing Early Stop")
         early_stop_callback = EarlyStopping(
             monitor="val_loss", patience=3, verbose=False, mode="min"
