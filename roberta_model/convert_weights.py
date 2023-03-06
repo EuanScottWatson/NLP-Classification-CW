@@ -81,8 +81,6 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    print(args.folder)
-
     if args.folder:
         converted_folder = os.path.join(args.folder, "converted")
     else:
