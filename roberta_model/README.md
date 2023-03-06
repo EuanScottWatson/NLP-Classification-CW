@@ -6,7 +6,7 @@ To be able to train and test the NLP model you must follow these steps:
 * Then navigate to `roberta_model/slurm_out_files` as all SLURM outputs will be saved here
 * Then run the line below wherein the model will be trained with the `RoBERTa_config` config for `10` epoch - change these if you want to try different configs or epoch lengths
 
-`sbatch ../bash_scripts/train.sh /vol/bitbucket/es1519/NLPClassification_01/roberta_model/configs/RoBERTa_config.json 10` 
+`sbatch ../bash_scripts/train.sh {path_to_config} 10` 
 
 * Once this is complete, find the saved checkpoints which will be under the `/saved/` folder with the SLURM id as the version number.
 * Then run the `convert_weights.py` script to convert the checkpoint into a useable format like this: 
