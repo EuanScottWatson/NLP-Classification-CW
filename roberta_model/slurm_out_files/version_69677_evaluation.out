@@ -1,0 +1,45 @@
+Mon Mar  6 01:13:07 2023       
++-----------------------------------------------------------------------------+
+| NVIDIA-SMI 525.60.11    Driver Version: 525.60.11    CUDA Version: 12.0     |
+|-------------------------------+----------------------+----------------------+
+| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+|                               |                      |               MIG M. |
+|===============================+======================+======================|
+|   0  Tesla T4            Off  | 00000000:00:09.0 Off |                    0 |
+| N/A   54C    P8    16W /  70W |      2MiB / 15360MiB |      0%      Default |
+|                               |                      |                  N/A |
++-------------------------------+----------------------+----------------------+
+                                                                               
++-----------------------------------------------------------------------------+
+| Processes:                                                                  |
+|  GPU   GI   CI        PID   Type   Process name                  GPU Memory |
+|        ID   ID                                                   Usage      |
+|=============================================================================|
+|  No running processes found                                                 |
++-----------------------------------------------------------------------------+
+ 01:13:07 up 4 days, 11:26,  1 user,  load average: 0.80, 0.35, 0.37
+Checkpoint: /vol/bitbucket/es1519/NLPClassification_01/roberta_model/saved/ROBERTA/lightning_logs/version_69677/checkpoints/epoch=0-step=122_converted.ckpt
+Test File: /vol/bitbucket/es1519/NLPClassification_01/roberta_model/DontPatronizeMe/csv_files/dontpatronizeme_pcl_test.csv
+Config: /vol/bitbucket/es1519/NLPClassification_01/roberta_model/configs/RoBERTa_config.json
+Some weights of the model checkpoint at roberta-base were not used when initializing RobertaForSequenceClassification: ['roberta.pooler.dense.bias', 'roberta.pooler.dense.weight', 'lm_head.bias', 'lm_head.dense.weight', 'lm_head.layer_norm.bias', 'lm_head.layer_norm.weight', 'lm_head.decoder.weight', 'lm_head.dense.bias']
+- This IS expected if you are initializing RobertaForSequenceClassification from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
+- This IS NOT expected if you are initializing RobertaForSequenceClassification from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+Some weights of RobertaForSequenceClassification were not initialized from the model checkpoint at roberta-base and are newly initialized: ['classifier.dense.weight', 'classifier.dense.bias', 'classifier.out_proj.bias', 'classifier.out_proj.weight']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+/vol/bitbucket/es1519/myvenv/lib/python3.10/site-packages/torch/utils/data/dataloader.py:554: UserWarning: This DataLoader will create 20 worker processes in total. Our suggested max number of worker in current system is 4, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  warnings.warn(_create_warning_msg(
+Batch size: 10
+Dataset: /vol/bitbucket/es1519/NLPClassification_01/roberta_model/DontPatronizeMe/csv_files/dontpatronizeme_pcl_test.csv
+Loading data: mode=TEST
+  0%|          | 0/158 [00:00<?, ?it/s]  1%|          | 1/158 [00:02<07:28,  2.85s/it]  1%|▏         | 2/158 [00:02<03:12,  1.23s/it]  3%|▎         | 4/158 [00:03<01:15,  2.03it/s]  4%|▍         | 6/158 [00:03<00:44,  3.43it/s]  5%|▌         | 8/158 [00:03<00:29,  5.05it/s]  6%|▋         | 10/158 [00:03<00:21,  6.85it/s]  8%|▊         | 12/158 [00:03<00:16,  8.78it/s]  9%|▉         | 14/158 [00:03<00:13, 10.29it/s] 10%|█         | 16/158 [00:03<00:12, 11.31it/s] 11%|█▏        | 18/158 [00:03<00:11, 12.64it/s] 13%|█▎        | 20/158 [00:04<00:11, 12.12it/s] 14%|█▍        | 22/158 [00:04<00:14,  9.30it/s] 15%|█▌        | 24/158 [00:04<00:12, 10.91it/s] 16%|█▋        | 26/158 [00:04<00:10, 12.13it/s] 18%|█▊        | 28/158 [00:04<00:10, 12.22it/s] 19%|█▉        | 30/158 [00:04<00:09, 13.38it/s] 20%|██        | 32/158 [00:05<00:08, 14.39it/s] 22%|██▏       | 35/158 [00:05<00:07, 16.42it/s] 24%|██▍       | 38/158 [00:05<00:06, 17.87it/s] 25%|██▌       | 40/158 [00:05<00:06, 18.05it/s] 27%|██▋       | 42/158 [00:05<00:06, 17.75it/s] 28%|██▊       | 44/158 [00:05<00:06, 17.47it/s] 29%|██▉       | 46/158 [00:05<00:06, 17.27it/s] 30%|███       | 48/158 [00:05<00:06, 17.01it/s] 32%|███▏      | 50/158 [00:06<00:06, 16.55it/s] 33%|███▎      | 52/158 [00:06<00:06, 16.52it/s] 34%|███▍      | 54/158 [00:06<00:06, 16.95it/s] 35%|███▌      | 56/158 [00:06<00:06, 16.64it/s] 37%|███▋      | 58/158 [00:06<00:07, 14.13it/s] 38%|███▊      | 60/158 [00:06<00:06, 15.32it/s] 40%|███▉      | 63/158 [00:06<00:05, 17.15it/s] 41%|████      | 65/158 [00:06<00:05, 15.71it/s] 42%|████▏     | 67/158 [00:07<00:06, 14.57it/s] 44%|████▎     | 69/158 [00:07<00:05, 15.67it/s] 46%|████▌     | 72/158 [00:07<00:05, 16.68it/s] 47%|████▋     | 74/158 [00:07<00:05, 16.15it/s] 48%|████▊     | 76/158 [00:07<00:05, 15.80it/s] 49%|████▉     | 78/158 [00:07<00:05, 15.16it/s] 51%|█████     | 80/158 [00:07<00:05, 14.82it/s] 53%|█████▎    | 83/158 [00:08<00:04, 16.48it/s] 54%|█████▍    | 85/158 [00:08<00:04, 16.67it/s] 56%|█████▌    | 88/158 [00:08<00:04, 16.99it/s] 57%|█████▋    | 90/158 [00:08<00:04, 16.36it/s] 58%|█████▊    | 92/158 [00:08<00:04, 16.40it/s] 59%|█████▉    | 94/158 [00:08<00:03, 17.15it/s] 61%|██████    | 96/158 [00:08<00:03, 16.89it/s] 62%|██████▏   | 98/158 [00:09<00:03, 17.10it/s] 63%|██████▎   | 100/158 [00:09<00:03, 16.66it/s] 65%|██████▍   | 102/158 [00:09<00:03, 16.36it/s] 66%|██████▋   | 105/158 [00:09<00:03, 17.29it/s] 68%|██████▊   | 107/158 [00:09<00:02, 17.62it/s] 70%|██████▉   | 110/158 [00:09<00:02, 18.50it/s] 71%|███████   | 112/158 [00:09<00:02, 17.41it/s] 73%|███████▎  | 115/158 [00:09<00:02, 17.34it/s] 74%|███████▍  | 117/158 [00:10<00:02, 16.92it/s] 75%|███████▌  | 119/158 [00:10<00:02, 17.28it/s] 77%|███████▋  | 121/158 [00:10<00:02, 17.71it/s] 78%|███████▊  | 123/158 [00:10<00:02, 17.20it/s] 79%|███████▉  | 125/158 [00:10<00:02, 16.14it/s] 81%|████████  | 128/158 [00:10<00:01, 17.68it/s] 82%|████████▏ | 130/158 [00:10<00:01, 17.24it/s] 84%|████████▎ | 132/158 [00:11<00:01, 16.27it/s] 85%|████████▍ | 134/158 [00:11<00:01, 15.55it/s] 86%|████████▌ | 136/158 [00:11<00:01, 16.35it/s] 87%|████████▋ | 138/158 [00:11<00:01, 15.91it/s] 89%|████████▊ | 140/158 [00:11<00:01, 16.38it/s] 90%|████████▉ | 142/158 [00:11<00:00, 17.12it/s] 91%|█████████ | 144/158 [00:11<00:00, 16.97it/s] 92%|█████████▏| 146/158 [00:11<00:00, 15.57it/s] 94%|█████████▍| 149/158 [00:12<00:00, 16.59it/s] 96%|█████████▌| 152/158 [00:12<00:00, 17.65it/s] 97%|█████████▋| 154/158 [00:12<00:00, 17.73it/s] 99%|█████████▊| 156/158 [00:12<00:00, 17.90it/s]100%|██████████| 158/158 [00:12<00:00, 12.50it/s]
+/vol/bitbucket/es1519/myvenv/lib/python3.10/site-packages/sklearn/metrics/_classification.py:1344: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples. Use `zero_division` parameter to control this behavior.
+  _warn_prf(average, modifier, msg_start, len(result))
+Number of predicted 0s: 1571
+Number of actual 0s: 1451
+Number of predicted 1s: 0
+Number of actual 1s: 120
+Accuracy: 0.9236155315085932
+Precision: 0.8530656500439012
+Recall: 0.9236155315085932
+F1 score: 0.8869398651349892
