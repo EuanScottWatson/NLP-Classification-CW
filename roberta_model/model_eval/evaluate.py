@@ -79,7 +79,7 @@ def test_classifier(config, dataset, checkpoint_path, device="cuda:0", log=False
     test_data_loader = DataLoader(
         test_dataset,
         batch_size=int(config["batch_size"]),
-        num_workers=20,
+        num_workers=10,
         shuffle=False,
     )
 
@@ -97,22 +97,28 @@ def test_classifier(config, dataset, checkpoint_path, device="cuda:0", log=False
     preds = np.stack(preds)
     targets = np.stack(targets)
     acc = accuracy_score(targets, preds)
-    prec = precision_score(targets, preds, average="weighted")
-    rec = recall_score(targets, preds, average="weighted")
-    f1 = f1_score(targets, preds, average="weighted")
+    prec = precision_score(targets, preds)
+    rec = recall_score(targets, preds)
+    f1 = f1_score(targets, preds)
     ids = [id.item() for id in ids]
 
-    if log:
-        print(f"Number of predicted 0s: {len([p for p in preds if p == 0])}")
-        print(f"Number of actual 0s: {len([t for t in targets if t == 0])}")
-        print(f"Number of predicted 1s: {len([p for p in preds if p == 1])}")
-        print(f"Number of actual 1s: {len([t for t in targets if t == 1])}")
-        
-        print(f"Accuracy: {acc}")
-        print(f"Precision: {prec}")
-        print(f"Recall: {rec}")
-        print(f"F1 score: {f1}")
+    conf_matrix = confusion_matrix(targets, preds)
+    print(conf_matrix)
 
+    tn, fp, fn, tp = conf_matrix.ravel()
+    print(f"tn={tn}, fp={fp}, fn={fn}, tp={tp}")
+
+    print(f"Number of predicted 0s: {len([p for p in preds if p == 0])}")
+    print(f"Number of actual 0s: {len([t for t in targets if t == 0])}")
+    print(f"Number of predicted 1s: {len([p for p in preds if p == 1])}")
+    print(f"Number of actual 1s: {len([t for t in targets if t == 1])}")
+    
+    print(f"Precision: {prec}")
+    print(f"Accuracy: {acc}")
+    print(f"Recall: {rec}")
+    print(f"F1 score: {f1}")
+
+    if log:
         return {
             "predictions": preds.tolist(),
             "targets": targets.tolist(),
