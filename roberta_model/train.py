@@ -9,13 +9,10 @@ from src.utils import get_model_and_tokenizer
 from torch.nn import functional as F
 import torch.nn as nn
 from torch.utils.data import DataLoader
+import transformers
 from transformers.optimization import (
     Adafactor,
     AdafactorSchedule,
-    WarmupCosineSchedule,
-    WarmupConstantSchedule,
-    WarmupCosineWithHardRestartsSchedule,
-    WarmupLinearSchedule,
 )
 
 
@@ -27,10 +24,10 @@ optimizer_table = {
 
 
 lr_scheduler_table = {
-    "ConstantWithWarmup": WarmupConstantSchedule,
-    "CosineWithWarmup": WarmupCosineSchedule,
-    "LinearWithWarmup": WarmupLinearSchedule,
-    "CosineWithHardRestarts": WarmupCosineWithHardRestartsSchedule,
+    "ConstantWithWarmup": transformers.get_constant_schedule_with_warmup,
+    "CosineWithWarmup": transformers.get_cosine_schedule_with_warmup,
+    "LinearWithWarmup": transformers.get_linear_schedule_with_warmup,
+    "CosineWithHardRestarts": transformers.get_cosine_with_hard_restarts_schedule_with_warmup,
     "AdafactorScedule": AdafactorSchedule,
 }
 
