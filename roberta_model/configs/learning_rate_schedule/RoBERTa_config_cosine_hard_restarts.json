@@ -1,0 +1,45 @@
+{
+    "name": "ROBERTA",
+    "n_gpu": 2,
+    "batch_size": 10,
+    "accumulate_grad_batches": 3,
+    "num_main_classes": 1,
+    "loss_weight": 0.75,
+    "arch": {
+        "type": "ROBERTA",
+        "args": {
+            "num_classes": 1,
+            "model_type": "roberta-base",
+            "model_name": "RobertaForSequenceClassification",
+            "tokenizer_name": "RobertaTokenizer",
+            "early_stop": false
+        }
+    },
+    "dataset": {
+        "type": "DontPatronizeMePCL",
+        "args": {
+            "train_csv_file": "/vol/bitbucket/es1519/NLPClassification_01/roberta_model/DontPatronizeMe/csv_files/train_upsampled.csv",
+            "val_csv_file": "/vol/bitbucket/es1519/NLPClassification_01/roberta_model/DontPatronizeMe/csv_files/valid.csv",
+            "test_csv_file": "/vol/bitbucket/es1519/NLPClassification_01/roberta_model/DontPatronizeMe/csv_files/dev.csv",
+            "loss_weight": 0.75,
+            "classes": [
+                "label"
+            ]
+        }
+    },
+    "optimizer": {
+        "type": "Adam",
+        "args": {
+            "lr": 3e-5,
+            "weight_decay": 3e-6,
+            "amsgrad": true
+        },
+        "lr_scheduler": {
+            "type": "CosineWithHardRestarts",
+            "args": {
+                "num_warmup_steps": 701,
+                "num_training_steps": 7010
+            }
+        }
+    }
+}

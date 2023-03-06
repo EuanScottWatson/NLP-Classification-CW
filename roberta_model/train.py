@@ -9,7 +9,30 @@ from src.utils import get_model_and_tokenizer
 from torch.nn import functional as F
 import torch.nn as nn
 from torch.utils.data import DataLoader
-from transformers.optimization import Adafactor, AdafactorSchedule
+from transformers.optimization import (
+    Adafactor,
+    AdafactorSchedule,
+    WarmupCosineSchedule,
+    WarmupConstantSchedule,
+    WarmupCosineWithHardRestartsSchedule,
+    WarmupLinearSchedule,
+)
+
+
+optimizer_table = {
+    "Adam": torch.optim.Adam,
+    "AdamW": torch.optim.AdamW,
+    "AdaFactor": Adafactor,
+}
+
+
+lr_scheduler_table = {
+    "ConstantWithWarmup": WarmupConstantSchedule,
+    "CosineWithWarmup": WarmupCosineSchedule,
+    "LinearWithWarmup": WarmupLinearSchedule,
+    "CosineWithHardRestarts": WarmupCosineWithHardRestartsSchedule,
+    "AdafactorScedule": AdafactorSchedule,
+}
 
 
 class PatronisingClassifier(pl.LightningModule):
@@ -92,23 +115,20 @@ class PatronisingClassifier(pl.LightningModule):
         return torch.tensor(correct)
 
     def configure_optimizers(self):
-        schedule_lr = self.config["optimizer"].get("schedule_lr", False)
+        optimizer_type = self.config["optimizer"]["type"]
+        optimizer_fn = optimizer_table.get(optimizer_type)
 
-        if not schedule_lr:
-            return torch.optim.Adam(
-                self.parameters(), **self.config["optimizer"]["args"]
+        optimizer = optimizer_fn(self.parameters(), **self.config["optimizer"]["args"])
+
+        if self.config["optimizer"].get("lr_scheduler") is not None:
+            lr_scheduler_type = self.config["optimizer"]["lr_scheduler"]["type"]
+            lr_scheduler_fn = lr_scheduler_table.get(lr_scheduler_type)
+            lr_scheduler = lr_scheduler_fn(
+                optimizer, **self.config["optimizer"]["lr_scheduler"]["args"]
             )
+            return [optimizer], [lr_scheduler]
 
-        optimizer = Adafactor(
-            self.parameters(),
-            scale_parameter=True,
-            relative_step=True,
-            warmup_init=True,
-            lr=None,
-        )
-        lr_scheduler = AdafactorSchedule(optimizer)
-
-        return [optimizer], [lr_scheduler]
+        return optimizer
 
 
 def cli_main():
@@ -162,8 +182,7 @@ def cli_main():
 
     print("Fetching datasets")
     train_dataset = get_instance(module_data, "dataset", config)
-    val_dataset = get_instance(
-        module_data, "dataset", config, mode="VALIDATION")
+    val_dataset = get_instance(module_data, "dataset", config, mode="VALIDATION")
 
     train_data_loader = DataLoader(
         train_dataset,
