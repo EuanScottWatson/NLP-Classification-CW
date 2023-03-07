@@ -85,10 +85,8 @@ def test_classifier(config, dataset, checkpoint_path, device="cuda:0", log=False
 
     preds = []
     targets = []
-    ids = []
     for *items, meta in tqdm(test_data_loader):
         targets += meta["target"]
-        ids += meta["text_id"]
         with torch.no_grad():
             out = model.forward(*items)
             sm = torch.sigmoid(out).cpu().detach().numpy()
@@ -100,7 +98,6 @@ def test_classifier(config, dataset, checkpoint_path, device="cuda:0", log=False
     prec = precision_score(targets, preds)
     rec = recall_score(targets, preds)
     f1 = f1_score(targets, preds)
-    ids = [id.item() for id in ids]
 
     conf_matrix = confusion_matrix(targets, preds)
     print(conf_matrix)
@@ -126,7 +123,6 @@ def test_classifier(config, dataset, checkpoint_path, device="cuda:0", log=False
             "precision": prec,
             "recall": rec,
             "f1_score": f1,
-            "ids": ids,
         }
 
     return {

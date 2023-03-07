@@ -2,10 +2,11 @@ import datasets
 import pandas as pd
 import torch
 from torch.utils.data.dataset import Dataset
+import hashlib
 
 
 class DontPatronizeMePCL(Dataset):
-    def __init__(self, train_csv_file, val_csv_file, test_csv_file, classes, loss_weight=0.75, mode="TRAIN"):
+    def __init__(self, train_csv_file, val_csv_file, test_csv_file, classes, loss_weight=0.75, mode="TRAIN", inference=False):
         print(f"Loading data: mode={mode}")
         if mode == "TRAIN":
             self.data = self.load_data(train_csv_file)
@@ -19,15 +20,15 @@ class DontPatronizeMePCL(Dataset):
         self.train = (mode == "TRAIN")
         self.classes = classes
         self.loss_weight = loss_weight
+        self.inference = inference
 
     def __getitem__(self, index):
         meta = {}
         entry = self.data[index]
-        text_id = entry["par_id"]
         text = entry["text"]
-        target_dict = {label: entry[label] for label in self.classes}
-        meta["target"] = torch.tensor(list(target_dict.values()), dtype=torch.int32)
-        meta["text_id"] = text_id
+        if not self.inference:
+            target_dict = {label: entry[label] for label in self.classes}
+            meta["target"] = torch.tensor(list(target_dict.values()), dtype=torch.int32)
 
         return text, meta
 
