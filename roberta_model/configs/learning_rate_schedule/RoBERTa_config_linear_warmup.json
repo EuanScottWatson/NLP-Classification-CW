@@ -35,7 +35,7 @@
             "amsgrad": true
         },
         "lr_scheduler": {
-            "type": "CosineWithWarmup",
+            "type": "LinearWithWarmup",
             "args": {
                 "num_warmup_steps": 701,
                 "num_training_steps": 7010

@@ -7,11 +7,9 @@ TERM=vt100 # or TERM=xterm
 uptime
 
 echo "Folder of Checkpoints: $1"
-echo "Test File: $2"
-echo "Config: $3"
+echo "Config: $2"
 
-python /vol/bitbucket/es1519/NLPClassification_01/roberta_model/model_eval/evaluate.py --folder $1 --test_csv $2 --config $3
+python /vol/bitbucket/es1519/NLPClassification_01/roberta_model/model_eval/evaluate.py --test_csv /vol/bitbucket/es1519/NLPClassification_01/roberta_model/DontPatronizeMe/csv_files/dev.csv --folder $1 --config $2
 
 # Param 1: folder (e.g. /vol/bitbucket/es1519/NLPClassification_01/roberta_model/saved/ROBERTA/lightning_logs/version_69835/checkpoints/converted)
-# Param 2: test_csv (e.g. /vol/bitbucket/es1519/NLPClassification_01/roberta_model/DontPatronizeMe/csv_files/dontpatronizeme_pcl_test.csv)
-# Param 3: config (e.g. /vol/bitbucket/es1519/NLPClassification_01/roberta_model/configs/RoBERTa_config.json)
+# Param 2: config (e.g. /vol/bitbucket/es1519/NLPClassification_01/roberta_model/configs/RoBERTa_config.json)

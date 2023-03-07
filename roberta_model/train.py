@@ -54,6 +54,7 @@ class PatronisingClassifier(pl.LightningModule):
         self.bias_loss = False
         self.loss_weight = config["loss_weight"]
         self.config = config
+        self.scheduler_present = False
 
     def forward(self, x):
         inputs = self.tokenizer(
@@ -68,6 +69,11 @@ class PatronisingClassifier(pl.LightningModule):
         output = self.forward(x)
         loss = nn.BCEWithLogitsLoss()(output, y.float())
         self.log("train_loss", loss)
+
+        if self.scheduler_present:
+            sch = self.lr_schedulers()
+            sch.step()
+
         return {"loss": loss}
 
     def validation_step(self, batch, batch_idx):
@@ -118,7 +124,9 @@ class PatronisingClassifier(pl.LightningModule):
         optimizer = optimizer_fn(self.parameters(), **self.config["optimizer"]["args"])
 
         if self.config["optimizer"].get("lr_scheduler") is not None:
+            self.scheduler_present = True
             lr_scheduler_type = self.config["optimizer"]["lr_scheduler"]["type"]
+            print(f"Using {lr_scheduler_type} scheduler")
             lr_scheduler_fn = lr_scheduler_table.get(lr_scheduler_type)
             lr_scheduler = lr_scheduler_fn(
                 optimizer, **self.config["optimizer"]["lr_scheduler"]["args"]
