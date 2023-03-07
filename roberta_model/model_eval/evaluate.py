@@ -85,19 +85,22 @@ def test_classifier(config, dataset, checkpoint_path, device="cuda:0", log=False
 
     preds = []
     targets = []
+    ids = []
     for *items, meta in tqdm(test_data_loader):
+        ids += meta.get("text_id", None)
         targets += meta["target"]
         with torch.no_grad():
             out = model.forward(*items)
             sm = torch.sigmoid(out).cpu().detach().numpy()
         preds.extend((sm >= 0.5).astype(int))
-
+    
     preds = np.stack(preds)
     targets = np.stack(targets)
     acc = accuracy_score(targets, preds)
     prec = precision_score(targets, preds)
     rec = recall_score(targets, preds)
     f1 = f1_score(targets, preds)
+    ids = [id.item() if id else None for id in ids]
 
     conf_matrix = confusion_matrix(targets, preds)
     print(conf_matrix)
@@ -115,10 +118,19 @@ def test_classifier(config, dataset, checkpoint_path, device="cuda:0", log=False
     print(f"Recall: {rec}")
     print(f"F1 score: {f1}")
 
+    data_points = []
+    for (id, target, prediction) in zip(ids, targets, preds):
+        data_points.append({
+            "id": int(id),
+            "target": int(target[0]),
+            "prediction": int(prediction[0])
+        })
+
+    print(data_points)
+
     if log:
         return {
-            "predictions": preds.tolist(),
-            "targets": targets.tolist(),
+            "data_points": data_points,
             "accuracy": acc,
             "precision": prec,
             "recall": rec,

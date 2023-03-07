@@ -26,6 +26,8 @@ class DontPatronizeMePCL(Dataset):
         meta = {}
         entry = self.data[index]
         text = entry["text"]
+        if "par_id" in entry:
+            meta["text_id"] = entry["par_id"]
         if not self.inference:
             target_dict = {label: entry[label] for label in self.classes}
             meta["target"] = torch.tensor(list(target_dict.values()), dtype=torch.int32)
