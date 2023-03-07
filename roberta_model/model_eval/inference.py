@@ -18,7 +18,7 @@ from transformers import logging
 logging.set_verbosity_error()
 
 
-def test_classifier(config, dataset, checkpoint_path, device="cuda:0"):
+def inference_testing(config, dataset, checkpoint_path, save_to, device="cuda:0"):
     model = PatronisingClassifier(config)
     checkpoint = torch.load(checkpoint_path, map_location=device)
     model.load_state_dict(checkpoint["state_dict"])
@@ -50,9 +50,9 @@ def test_classifier(config, dataset, checkpoint_path, device="cuda:0"):
 
     preds = np.stack(preds)
 
-    return {
-        "predictions": preds.tolist(),
-    }
+    with open(save_to, "w") as f:
+        for number in preds:
+            f.write(str(number[0]) + "\n")
 
 
 if __name__ == "__main__":
@@ -84,17 +84,15 @@ if __name__ == "__main__":
         type=str,
         help="path to test dataset",
     )
+    parser.add_argument(
+        "--save_to",
+        type=str,
+        help="Path to save predictions"
+    )
     args = parser.parse_args()
     config = json.load(open(args.config))
 
     if args.device is not None:
         config["gpus"] = args.device
 
-    results = test_classifier(config, args.test_csv,
-                                args.checkpoint, args.device)
-    test_set_name = args.test_csv.split("/")[-1:][0]
-
-    with open(args.checkpoint[:-4] + f"results_{test_set_name}.json", "w") as f:
-        json.dump(results, f)
-
-# LR=1e-5	X	X	X	70010	0.48531	0.30363	0.601	0.599	0.602	0.931	7
+    results = inference_testing(config, args.test_csv, args.checkpoint, args.save_to, args.device)
